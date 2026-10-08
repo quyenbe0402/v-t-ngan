@@ -1,0 +1,7 @@
+NOTICE — Vịt-Ngan Harness
+
+- Tham khảo/phái sinh từ: AAswordman/Operit (LGPL-3.0).
+- Mức độ phái sinh do Owner xác nhận (task E0-2): hiện chỉ copy pattern (Shizuku, Tool, Provider),
+  chưa copy nguyên file. Khi copy file nào, giữ nguyên header LGPL của file đó.
+- Shizuku-API: RikkaApps/Shizuku-API (MIT).
+- Dadb: mobile-dev-inc/dadb (Apache-2.0).

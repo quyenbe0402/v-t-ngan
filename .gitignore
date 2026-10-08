@@ -1,0 +1,17 @@
+# Bí mật & build local — KHÔNG commit
+*.jks
+*.keystore
+local.properties
+*.keystore.*
+google-services.json
+# Android / Gradle
+.gradle/
+build/
+local/
+*.apk
+*.aab
+# OS / IDE
+.DS_Store
+.idea/
+*.iml
+.kotlin/
