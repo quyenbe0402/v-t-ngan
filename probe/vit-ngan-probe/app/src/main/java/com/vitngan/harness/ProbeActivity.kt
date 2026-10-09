@@ -210,15 +210,41 @@ class ProbeActivity : ComponentActivity() {
     }
 
     private fun checkPermission(): Boolean {
-        if (Shizuku.isPreV11()) {
-            addLog("pre-v11 unsupported"); return false
-        }
-        if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) return true
-        if (Shizuku.shouldShowRequestPermissionRationale()) {
-            addLog("Đã chọn không hỏi lại → vào Shizuku Manager cấp lại")
+        // Guard: binder chưa nhận (server chết/chưa Start) thì Shizuku.* ném
+        // IllegalStateException("binder haven't been received") → crash main (FATAL
+        // 10-09 khi chat lúc NO_SERVER). Không bao giờ để ném ra ngoài (NFR-08).
+        try {
+            if (!Shizuku.pingBinder()) {
+                addLog("Shizuku chưa chạy — mở app Shizuku → Start rồi thử lại")
+                return false
+            }
+        } catch (e: Exception) {
+            addLog("Shizuku chưa sẵn sàng (${e.message}) — mở Shizuku → Start")
             return false
         }
-        Shizuku.requestPermission(reqCode)
+        try {
+            if (Shizuku.isPreV11()) {
+                addLog("pre-v11 unsupported"); return false
+            }
+        } catch (e: Exception) {
+            addLog("Không kiểm tra được Shizuku (${e.message})")
+            return false
+        }
+        try {
+            if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) return true
+        } catch (e: Exception) {
+            addLog("Shizuku chưa sẵn sàng (${e.message}) — mở Shizuku → Start")
+            return false
+        }
+        try {
+            if (Shizuku.shouldShowRequestPermissionRationale()) {
+                addLog("Đã chọn không hỏi lại → vào Shizuku Manager cấp lại")
+                return false
+            }
+            Shizuku.requestPermission(reqCode)
+        } catch (e: Exception) {
+            addLog("Shizuku mất kết nối (${e.message}) — mở Shizuku → Start")
+        }
         return false
     }
 

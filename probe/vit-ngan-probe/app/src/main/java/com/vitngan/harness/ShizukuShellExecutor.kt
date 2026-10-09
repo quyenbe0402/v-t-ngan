@@ -38,9 +38,19 @@ class ShizukuShellExecutor(context: Context) : ShellExecutor {
             if (!Shizuku.pingBinder()) throw ShizukuNotAvailable(
                 "Shizuku chưa chạy (pingBinder=false). Mở Shizuku → Start."
             )
-            if (Shizuku.isPreV11()) throw ShizukuNotAvailable("Shizuku pre-v11 không hỗ trợ.")
-            if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED)
-                throw ShizukuNotGranted("Chưa cấp Shizuku permission. Gọi requestPermission trước.")
+            try {
+                if (Shizuku.isPreV11()) throw ShizukuNotAvailable("Shizuku pre-v11 không hỗ trợ.")
+                if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED)
+                    throw ShizukuNotGranted("Chưa cấp Shizuku permission. Gọi requestPermission trước.")
+            } catch (e: ShizukuNotAvailable) {
+                throw e
+            } catch (e: ShizukuNotGranted) {
+                throw e
+            } catch (e: Exception) {
+                // Race: ping OK rồi binder chết ngay trước check (IllegalStateException
+                // "binder haven't been received") → lỗi mềm, không crash (NFR-08).
+                throw ShizukuNotAvailable("Shizuku mất kết nối (${e.message}). Mở Shizuku → Start.")
+            }
             // KHÔNG check CommandPolicy ở đây: backend chỉ thực thi theo lệnh.
             // Gate xác nhận nằm ở AgentCore (requiresConfirm + confirmed=true) và
             // whitelist từng tool. Tránh double-gate làm confirmed flow không bao giờ chạy.
